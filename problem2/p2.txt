@@ -1,0 +1,148 @@
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.regex.*;
+import java.math.RoundingMode;
+import java.math.BigDecimal;
+
+public class HelloWorld{
+
+     public static void main(String []args) throws IOException{
+        
+        
+        String fileName = "input.txt";
+        Path path = Paths.get(fileName);
+        Scanner scanner = new Scanner(path);
+         
+        scanner.useDelimiter(System.getProperty("line.separator"));
+        while(scanner.hasNext()){
+          Item it = parseTextLine(scanner.next());
+            //System.out.println(it.toString());
+        
+        System.out.println(it.calculateTax());
+        }
+        scanner.close();
+     }
+        
+    private static Item parseTextLine(String line) {
+
+         String[] results= line.split("[ -]");
+
+         int z=2;
+
+         int amount;
+         String name= results[1];
+         double cost;
+         
+         amount= Integer.parseInt(results[0]);
+         
+         while (z<(results.length-2))
+         {
+             name= name.concat(" " + results[z]);
+             z++;
+         }
+         
+         cost= Double.parseDouble(results[results.length-1]);
+         
+         Pattern p = Pattern.compile(".*(chocolate|book|headache pills).*");
+
+         Matcher m= p.matcher(name);
+         boolean isExempt= m.matches();
+  
+          
+         p = Pattern.compile (".*imported.*");
+         m = p.matcher(name);
+         boolean isImport= m.matches();
+          //System.out.println(name + " " + isExempt + " " + isImport);          
+         System.out.println(amount + " " + name + " " + cost + " " + " " + isExempt + " " + isImport);
+
+         
+        HelloWorld jfs = new HelloWorld();
+         return jfs.new Item(amount, name, cost, isExempt, isImport);
+         
+    }
+ 
+ public class Item{
+        private int amount;
+        private String name;
+        private double cost;
+        private boolean isExempt;
+        private boolean isImport;
+        
+       // private final TaxCalculator taxCalculator= new TaxCalculator (cost, isExempt, isImport);
+         
+        public Item(int a, String n, double c, boolean e, boolean i){
+            this.amount = a;
+            this.name = n;
+            this.cost = c;
+            this.isExempt = e;
+            this.isImport = i;
+        }
+        
+                   public double calculateTax(){
+            double taxValue=0;
+            
+            if ((isExempt == true) && (isImport== true))
+            {
+               taxValue= 0.05*price;
+              
+            }
+            else if ((isExempt == false) && (isImport== true))
+            {
+               taxValue= 0.15*price;
+              
+            }
+            else if ((isExempt == false) && (isImport== false))
+            {
+               taxValue= 0.1*price;
+              
+            }            
+            else if ((isExempt == true) && (isImport== false))
+            {
+               taxValue= 0;
+              
+            }    
+            //taxValue = Math.round(taxValue*20.0)/20.0;
+            return taxValue;
+            }
+    
+         
+        @Override
+        public String toString(){
+            return " " +this.amount;
+        }
+}
+
+
+
+/*
+
+public class NoTaxCalculator extends TaxCalculator {
+    
+    @Override
+  public double calculateTax(final double value) {
+    return 0;
+  }
+
+}
+
+public class SalesTaxCalculator extends TaxCalculator{
+      @Override
+  public double calculateTax(final double value) {
+    final double tax = 0.1*value;
+    final double rounded = round(tax);
+    return rounded;
+  }
+
+  protected double round(double value) {
+    //value = value.multiply(new double("20")).setScale(0, RoundingMode.UP).setScale(2);
+    //value = value.divide(new double("20"), RoundingMode.UP);
+    //return value;
+  }
+    
+}
+
+*/
+
+}

@@ -1,0 +1,189 @@
+/*
+Chris Mah
+Problem 2: Sales Taxes
+Java
+*/
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.regex.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
+public class ShopApp{
+
+
+    public static void main(String []args) throws IOException{
+
+        Cart cart = new Cart();
+
+        parseInput(cart);
+        cart.printList();
+}    
+
+    public static void parseInput(Cart cart) throws IOException{
+        
+        String fileName = "input.txt";
+        Path path = Paths.get(fileName);
+        Scanner scanner = new Scanner(path);
+        
+        scanner.useDelimiter(System.getProperty("line.separator"));
+        
+        while(scanner.hasNext()){
+          String line = scanner.next();
+          String[] results= line.split("[ -]");
+          
+        int z=2;
+
+         int amount;
+         String name= results[1];
+         double price;
+         
+         amount= Integer.parseInt(results[0]);
+         
+         while (z<(results.length-2))
+         {
+             name= name.concat(" " + results[z]);
+             z++;
+         }
+         
+         price= Double.parseDouble(results[results.length-1]);
+         
+         Pattern p = Pattern.compile(".*(chocolate|book|headache pills).*");
+
+         Matcher m= p.matcher(name);
+         boolean isExempt= m.matches();
+  
+          
+         p = Pattern.compile (".*imported.*");
+         m = p.matcher(name);
+         boolean isImport= m.matches();
+         //System.out.println(amount + " " + name + " " + price + " " + " " + isExempt + " " + isImport);
+
+        cart.add (new Item(Double.toString(price), name, isExempt, isImport)); 
+
+        
+        } 
+        
+        scanner.close();
+        
+    }
+}
+
+ class Item{
+    
+         private BigDecimal price;
+         private String name;
+         private boolean isExempt, isImport;
+    
+            public Item (BigDecimal price, String name,boolean isExempt,boolean isImport){
+
+            this.price = price;
+            this.name = name;
+            this.isExempt = isExempt;
+            this.isImport = isImport;
+            }
+            
+            public Item (String price, String name, boolean isExempt, boolean isImport) throws NumberFormatException {
+            this(new BigDecimal(price), name, isExempt, isImport);
+            }
+            
+    
+            public String getName(){
+                return name;
+            }
+
+            public BigDecimal getPrice(){
+                
+               // DecimalFormat df = new DecimalFormat("#.##");
+                //price = Double.parseDouble(df.format(price));
+                
+                return price.add(calculateTax());
+            }    
+            
+            public BigDecimal calculateTax(){
+            BigDecimal taxValue=BigDecimal.ZERO;
+            BigDecimal importTax= new BigDecimal("0.05");
+            BigDecimal salesTax= new BigDecimal("0.10");
+            
+            
+            
+            if ((isExempt == true) && (isImport== true))
+            {
+               taxValue= price.multiply(importTax);
+              
+            }
+            if ((isExempt == false) && (isImport== true))
+            {
+               taxValue= price.multiply(importTax.add(salesTax));
+              
+            }
+            if ((isExempt == false) && (isImport== false))
+            {
+               taxValue= price.multiply(salesTax);
+              
+            }            
+            if ((isExempt == true) && (isImport== false))
+            {
+               taxValue= BigDecimal.ZERO;
+              
+            }    
+            //taxValue = Math.round(taxValue*20.0)/20.0;
+            //DecimalFormat df = new DecimalFormat("#.##");
+            //taxValue = Double.parseDouble(df.format(taxValue));
+            taxValue= taxValue.multiply(new BigDecimal("20"));
+            taxValue= taxValue.setScale(0, RoundingMode.HALF_UP);
+            taxValue= taxValue.divide(new BigDecimal("20"));
+            taxValue= taxValue.setScale(2, RoundingMode.UP);
+            return taxValue;
+            }
+    }
+    
+class Cart{
+    
+    private ArrayList<Item> itemList = new ArrayList<>();
+    
+    public void add (Item item){
+        
+        itemList.add(item);
+    }
+    
+    public BigDecimal getTotalTax(){
+        
+        BigDecimal totalTax=BigDecimal.ZERO;
+        
+        for (Item item: itemList)
+        {
+            totalTax= totalTax.add(item.calculateTax());
+        }
+        return totalTax;
+    }
+    
+    public BigDecimal getTotalPrice(){
+        BigDecimal totalPrice=BigDecimal.ZERO;
+        
+        for (Item item: itemList)
+        {
+            totalPrice= totalPrice.add(item.getPrice());
+        }
+        
+        return totalPrice;
+    }
+    
+    public void printList()
+    {
+        for (Item item: itemList){
+            System.out.println ("1 " + item.getName() + ": " + item.getPrice());
+        }
+        
+        System.out.println("Sales Taxes: " + getTotalTax());
+        System.out.println("Total: " + getTotalPrice());
+
+    }
+    
+}
+    
+    
